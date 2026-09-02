@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\LaporanController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ForgotPasswordController;
 use App\Http\Controllers\Api\AdminLaporanController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\TestNotificationController;
@@ -62,6 +63,24 @@ Route::prefix('auth')->group(function () {
         AuthController::class,
         'register',
     ]);
+
+    // Lupa password (public, rate limited). Tidak memerlukan JWT.
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('/forgot-password', [
+            ForgotPasswordController::class,
+            'sendResetCode',
+        ]);
+
+        Route::post('/verify-reset-token', [
+            ForgotPasswordController::class,
+            'verifyResetCode',
+        ]);
+
+        Route::post('/reset-password', [
+            ForgotPasswordController::class,
+            'resetPassword',
+        ]);
+    });
 
     Route::middleware('unified.auth')->group(function () {
 
