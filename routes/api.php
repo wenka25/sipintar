@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\LaporanController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminLaporanController;
@@ -12,12 +13,15 @@ use App\Http\Controllers\Api\AdminExportController;
 use App\Http\Controllers\Api\KategoriController;
 
 // Public routes
-Route::get('/ping', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'Laravel API berhasil',
-    ]);
-});
+Route::get('/ping', fn () => response()->json([
+    'success' => true,
+    'message' => 'Laravel API berhasil',
+]));
+
+Route::get('/db-check', fn () => response()->json([
+    'database' => DB::connection()->getDatabaseName(),
+    'unit_layanan_count' => DB::table('unit_layanan')->count(),
+]));
 
 Route::get('/unit-layanan', [UnitLayananController::class, 'index']);
 Route::get('/kategori', [KategoriController::class, 'index']);
