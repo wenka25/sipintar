@@ -11,8 +11,14 @@ use App\Http\Controllers\Api\UnitLayananController;
 use App\Http\Controllers\Api\AdminExportController;
 use App\Http\Controllers\Api\KategoriController;
 
-
 // Public routes
+Route::get('/ping', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'Laravel API berhasil',
+    ]);
+});
+
 Route::get('/unit-layanan', [UnitLayananController::class, 'index']);
 Route::get('/kategori', [KategoriController::class, 'index']);
 Route::post('/laporan', [
@@ -40,7 +46,6 @@ Route::get('/warga/laporan', [
     'index',
 ])->middleware(['unified.auth', 'role:warga']);
 
-
 // Authentication routes
 Route::prefix('auth')->group(function () {
 
@@ -66,9 +71,7 @@ Route::prefix('auth')->group(function () {
             'logout',
         ]);
     });
-
 });
-
 
 //admin routes
 Route::prefix('admin')
@@ -103,7 +106,7 @@ Route::prefix('admin')
             Route::post('/', [UnitLayananController::class, 'assign']);
             Route::delete('/{unitId}', [UnitLayananController::class, 'unassign']);
         });
-});
+    });
 
 Route::post('/test-notification', [TestNotificationController::class, 'send'])
     ->middleware(['unified.auth', 'role:admin']);
