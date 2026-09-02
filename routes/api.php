@@ -23,18 +23,6 @@ Route::get('/db-check', fn () => response()->json([
     'unit_layanan_count' => DB::table('unit_layanan')->count(),
 ]));
 
-Route::get('/db-check', function () {
-    $connection = DB::connection();
-
-    return response()->json([
-        'database' => $connection->getDatabaseName(),
-        'host' => config('database.connections.mysql.host'),
-        'port' => config('database.connections.mysql.port'),
-        'username' => config('database.connections.mysql.username'),
-        'unit_layanan_count' => DB::table('unit_layanan')->count(),
-    ]);
-});
-
 Route::get('/unit-layanan', [UnitLayananController::class, 'index']);
 Route::get('/kategori', [KategoriController::class, 'index']);
 Route::post('/laporan', [
