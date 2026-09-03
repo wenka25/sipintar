@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\WargaLaporanController;
 use App\Http\Controllers\Api\UnitLayananController;
 use App\Http\Controllers\Api\AdminExportController;
 use App\Http\Controllers\Api\KategoriController;
+use App\Http\Controllers\Api\PasswordResetRequestController;
 
 // Public routes
 Route::get('/ping', fn () => response()->json([
@@ -34,6 +35,13 @@ Route::post('/laporan', [
 Route::get('/laporan/perangkat', [
     LaporanController::class,
     'anonymousIndex',
+]);
+
+// TASK B: Pengajuan permintaan reset password oleh user (tanpa login).
+// Terpisah total dari laporan; tidak menyentuh tabel/statistik laporan.
+Route::post('/password-reset-requests', [
+    PasswordResetRequestController::class,
+    'store',
 ]);
 
 Route::get('/laporan/{kodeTiket}', [
@@ -127,6 +135,14 @@ Route::prefix('admin')
         Route::middleware('role:admin')->prefix('users')->group(function () {
             Route::get('/', [AdminUserController::class, 'index']);
             Route::post('/{id}/reset-password', [AdminUserController::class, 'resetPassword']);
+        });
+
+        // TASK B: Admin memproses permintaan reset password (admin saja).
+        Route::middleware('role:admin')->prefix('password-reset-requests')->group(function () {
+            Route::get('/', [PasswordResetRequestController::class, 'index']);
+            Route::post('/{id}/verify', [PasswordResetRequestController::class, 'verify']);
+            Route::post('/{id}/reject', [PasswordResetRequestController::class, 'reject']);
+            Route::post('/{id}/reset', [PasswordResetRequestController::class, 'reset']);
         });
     });
 
