@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\LaporanController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ForgotPasswordController;
+use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminLaporanController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\TestNotificationController;
@@ -64,23 +64,10 @@ Route::prefix('auth')->group(function () {
         'register',
     ]);
 
-    // Lupa password (public, rate limited). Tidak memerlukan JWT.
-    Route::middleware('throttle:10,1')->group(function () {
-        Route::post('/forgot-password', [
-            ForgotPasswordController::class,
-            'sendResetCode',
-        ]);
-
-        Route::post('/verify-reset-token', [
-            ForgotPasswordController::class,
-            'verifyResetCode',
-        ]);
-
-        Route::post('/reset-password', [
-            ForgotPasswordController::class,
-            'resetPassword',
-        ]);
-    });
+    // TASK A: "Lupa Password" tidak lagi menggunakan OTP/email.
+    // User menghubungi Admin; Admin mereset password via endpoint
+    // /admin/users/{id}/reset-password. User wajib mengganti password
+    // setelah login dengan password sementara (must_change_password).
 
     Route::middleware('unified.auth')->group(function () {
 
@@ -92,6 +79,12 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [
             AuthController::class,
             'logout',
+        ]);
+
+        // Ganti password oleh user yang login (wajib setelah reset oleh Admin).
+        Route::post('/change-password', [
+            AuthController::class,
+            'changePassword',
         ]);
     });
 });
@@ -128,6 +121,12 @@ Route::prefix('admin')
             Route::get('/', [UnitLayananController::class, 'assignments']);
             Route::post('/', [UnitLayananController::class, 'assign']);
             Route::delete('/{unitId}', [UnitLayananController::class, 'unassign']);
+        });
+
+        // TASK A: Manajemen Pengguna (khusus admin, bukan petugas).
+        Route::middleware('role:admin')->prefix('users')->group(function () {
+            Route::get('/', [AdminUserController::class, 'index']);
+            Route::post('/{id}/reset-password', [AdminUserController::class, 'resetPassword']);
         });
     });
 

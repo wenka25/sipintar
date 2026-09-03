@@ -137,6 +137,7 @@ class AuthController extends Controller
                         'name' => $user->name,
                         'email' => $user->email,
                         'role' => $user->role,
+                        'must_change_password' => (bool) $user->must_change_password,
                         'unit_layanan' => $units,
                     ],
                 ],
@@ -180,6 +181,7 @@ class AuthController extends Controller
                     'email' => $akunWarga->email,
                     'role' => 'warga',
                     'pelapor_id' => $pelapor?->id,
+                    'must_change_password' => (bool) $akunWarga->must_change_password,
                 ],
             ],
         ]);
@@ -206,6 +208,7 @@ class AuthController extends Controller
                 'pelapor_id' => $user instanceof AkunWarga
                     ? $user->pelapor()->latest('id')->value('id')
                     : null,
+                'must_change_password' => (bool) $user->must_change_password,
                 'unit_layanan' => $user instanceof \App\Models\User
                     ? $user->unitLayanan->map(fn ($unit) => [
                         'id' => $unit->id,
@@ -214,6 +217,38 @@ class AuthController extends Controller
                     ])->values()
                     : [],
             ],
+        ]);
+    }
+
+    /**
+     * Ganti password oleh user yang sedang login (JWT unified: staff atau warga).
+     * Dipakai oleh mekanisme force-change-password setelah Admin memberikan
+     * password sementara, dan oleh user yang mengganti password secara sukarela.
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password saat ini tidak sesuai.',
+            ], 422);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($validated['password']),
+            'must_change_password' => false,
+        ])->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil diganti.',
         ]);
     }
 
