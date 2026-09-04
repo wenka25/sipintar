@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Mail\TemporaryPasswordMail;
 use App\Models\AkunWarga;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
@@ -87,6 +89,7 @@ class PasswordResetRequestTest extends TestCase
     {
         $this->createWarga();
         $token = $this->loginAsAdmin();
+        Mail::fake();
 
         $this->postJson('/api/password-reset-requests', [
             'identifier_type' => 'email',
@@ -104,13 +107,20 @@ class PasswordResetRequestTest extends TestCase
             'Authorization' => "Bearer {$token}",
         ])->assertOk()->assertJsonPath('data.request.status', 'verified');
 
-        $temporaryPassword = $this->postJson(
+        $resetResponse = $this->postJson(
             "/api/admin/password-reset-requests/{$requestId}/reset",
             [],
             ['Authorization' => "Bearer {$token}"],
-        )->assertOk()->json('data.temporary_password');
+        )->assertOk()
+            ->assertJsonPath('data.email_sent', true)
+            ->assertJsonMissingPath('data.temporary_password');
 
-        $this->assertNotEmpty($temporaryPassword);
+        $temporaryPassword = null;
+        Mail::assertSent(TemporaryPasswordMail::class, function (TemporaryPasswordMail $mail) use (&$temporaryPassword): bool {
+            $temporaryPassword = $mail->temporaryPassword;
+            return true;
+        });
+        $this->assertNotNull($temporaryPassword);
 
         // Request selesai; password plaintext tidak pernah tersimpan.
         $this->assertDatabaseHas('password_reset_requests', [

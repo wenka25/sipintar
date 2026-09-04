@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TemporaryPasswordMail;
 use App\Models\AkunWarga;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 /**
@@ -125,11 +127,26 @@ class AdminUserController extends Controller
             'must_change_password' => true,
         ])->save();
 
+        try {
+            Mail::to($account->email)->send(new TemporaryPasswordMail($temporaryPassword));
+        } catch (\Throwable) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password berhasil direset, tetapi email tidak berhasil dikirim. Gunakan prosedur fallback yang tersedia.',
+                'data' => [
+                    'email_sent' => false,
+                    'email' => $account->email,
+                    'temporary_password' => $temporaryPassword,
+                ],
+            ]);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Password berhasil direset. Berikan password sementara ini kepada pengguna.',
+            'message' => 'Password berhasil direset dan dikirim ke email pengguna.',
             'data' => [
-                'temporary_password' => $temporaryPassword,
+                'email_sent' => true,
+                'email' => $account->email,
             ],
         ]);
     }

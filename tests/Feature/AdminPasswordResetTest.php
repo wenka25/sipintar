@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\TemporaryPasswordMail;
 use App\Models\AkunWarga;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
@@ -84,6 +86,7 @@ class AdminPasswordResetTest extends TestCase
         $this->createAdmin();
         $warga = $this->createWarga();
         $token = $this->loginAsAdmin();
+        Mail::fake();
 
         $response = $this->postJson(
             "/api/admin/users/{$warga->id}/reset-password",
@@ -91,10 +94,18 @@ class AdminPasswordResetTest extends TestCase
             ['Authorization' => "Bearer {$token}"],
         )->assertOk()->assertJsonPath('success', true);
 
-        // Password sementara dikembalikan hanya di response ini.
-        $temporaryPassword = $response->json('data.temporary_password');
-        $this->assertNotEmpty($temporaryPassword);
-        $this->assertGreaterThanOrEqual(12, strlen($temporaryPassword));
+        $response->assertJsonPath('data.email_sent', true)
+            ->assertJsonPath('data.email', $warga->email)
+            ->assertJsonMissingPath('data.temporary_password');
+
+        $temporaryPassword = null;
+        Mail::assertSent(TemporaryPasswordMail::class, function (TemporaryPasswordMail $mail) use (&$temporaryPassword, $warga): bool {
+            $temporaryPassword = $mail->temporaryPassword;
+            return $mail->hasTo($warga->email)
+                && $mail->envelope()->subject === 'SIPINTAR — Password Sementara Akun Anda'
+                && str_contains($mail->render(), $temporaryPassword);
+        });
+        $this->assertNotNull($temporaryPassword);
 
         // Password lama tidak berlaku.
         $this->postJson('/api/auth/login', [
@@ -138,14 +149,22 @@ class AdminPasswordResetTest extends TestCase
         $this->createAdmin();
         $petugas = $this->createPetugas();
         $token = $this->loginAsAdmin();
+        Mail::fake();
 
-        $temporaryPassword = $this->postJson(
+        $response = $this->postJson(
             "/api/admin/users/{$petugas->id}/reset-password",
             ['account_type' => 'staff'],
             ['Authorization' => "Bearer {$token}"],
-        )->assertOk()->json('data.temporary_password');
+        )->assertOk()
+            ->assertJsonPath('data.email_sent', true)
+            ->assertJsonMissingPath('data.temporary_password');
 
-        $this->assertNotEmpty($temporaryPassword);
+        $temporaryPassword = null;
+        Mail::assertSent(TemporaryPasswordMail::class, function (TemporaryPasswordMail $mail) use (&$temporaryPassword, $petugas): bool {
+            $temporaryPassword = $mail->temporaryPassword;
+            return $mail->hasTo($petugas->email);
+        });
+        $this->assertNotNull($temporaryPassword);
 
         $this->postJson('/api/auth/login', [
             'identifier' => 'petugas@dpk.go.id',
