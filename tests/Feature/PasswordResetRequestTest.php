@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\TemporaryPasswordMail;
 use App\Models\AkunWarga;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
@@ -111,16 +110,15 @@ class PasswordResetRequestTest extends TestCase
             "/api/admin/password-reset-requests/{$requestId}/reset",
             [],
             ['Authorization' => "Bearer {$token}"],
-        )->assertOk()
-            ->assertJsonPath('data.email_sent', true)
-            ->assertJsonMissingPath('data.temporary_password');
+        )->assertOk();
 
-        $temporaryPassword = null;
-        Mail::assertSent(TemporaryPasswordMail::class, function (TemporaryPasswordMail $mail) use (&$temporaryPassword): bool {
-            $temporaryPassword = $mail->temporaryPassword;
-            return true;
-        });
-        $this->assertNotNull($temporaryPassword);
+        // Password sementara dikembalikan SATU KALI + email akun dari record.
+        $temporaryPassword = $resetResponse->json('data.temporary_password');
+        $this->assertNotEmpty($temporaryPassword);
+        $resetResponse->assertJsonPath('data.email', 'budi@example.com');
+
+        // TIDAK ADA email delivery untuk reset password.
+        Mail::assertNothingSent();
 
         // Request selesai; password plaintext tidak pernah tersimpan.
         $this->assertDatabaseHas('password_reset_requests', [

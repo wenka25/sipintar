@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Mail\TemporaryPasswordMail;
 use App\Models\AkunWarga;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
@@ -11,7 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 /**
@@ -233,27 +231,14 @@ class PasswordResetRequestController extends Controller
             ]);
         });
 
-        try {
-            Mail::to($account->email)->send(new TemporaryPasswordMail($temporaryPassword));
-        } catch (\Throwable) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Password berhasil direset, tetapi email tidak berhasil dikirim. Gunakan prosedur fallback yang tersedia.',
-                'data' => [
-                    'email_sent' => false,
-                    'email' => $account->email,
-                    'temporary_password' => $temporaryPassword,
-                    'request' => $this->format($resetRequest->refresh()),
-                ],
-            ]);
-        }
-
+        // Password sementara dikembalikan SATU KALI kepada Admin untuk
+        // dibagikan secara manual (Copy/Share). TIDAK dikirim via email.
         return response()->json([
             'success' => true,
-            'message' => 'Password berhasil direset dan dikirim ke email pengguna.',
+            'message' => 'Password berhasil direset. Berikan password sementara kepada pengguna secara manual.',
             'data' => [
-                'email_sent' => true,
                 'email' => $account->email,
+                'temporary_password' => $temporaryPassword,
                 'request' => $this->format($resetRequest->refresh()),
             ],
         ]);

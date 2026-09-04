@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\TemporaryPasswordMail;
 use App\Models\AkunWarga;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -94,18 +93,14 @@ class AdminPasswordResetTest extends TestCase
             ['Authorization' => "Bearer {$token}"],
         )->assertOk()->assertJsonPath('success', true);
 
-        $response->assertJsonPath('data.email_sent', true)
-            ->assertJsonPath('data.email', $warga->email)
-            ->assertJsonMissingPath('data.temporary_password');
+        // Password sementara dikembalikan SATU KALI + email akun dari record.
+        $temporaryPassword = $response->json('data.temporary_password');
+        $this->assertNotEmpty($temporaryPassword);
+        $this->assertGreaterThanOrEqual(12, strlen($temporaryPassword));
+        $response->assertJsonPath('data.email', $warga->email);
 
-        $temporaryPassword = null;
-        Mail::assertSent(TemporaryPasswordMail::class, function (TemporaryPasswordMail $mail) use (&$temporaryPassword, $warga): bool {
-            $temporaryPassword = $mail->temporaryPassword;
-            return $mail->hasTo($warga->email)
-                && $mail->envelope()->subject === 'SIPINTAR — Password Sementara Akun Anda'
-                && str_contains($mail->render(), $temporaryPassword);
-        });
-        $this->assertNotNull($temporaryPassword);
+        // TIDAK ADA email delivery untuk reset password.
+        Mail::assertNothingSent();
 
         // Password lama tidak berlaku.
         $this->postJson('/api/auth/login', [
@@ -155,16 +150,14 @@ class AdminPasswordResetTest extends TestCase
             "/api/admin/users/{$petugas->id}/reset-password",
             ['account_type' => 'staff'],
             ['Authorization' => "Bearer {$token}"],
-        )->assertOk()
-            ->assertJsonPath('data.email_sent', true)
-            ->assertJsonMissingPath('data.temporary_password');
+        )->assertOk();
 
-        $temporaryPassword = null;
-        Mail::assertSent(TemporaryPasswordMail::class, function (TemporaryPasswordMail $mail) use (&$temporaryPassword, $petugas): bool {
-            $temporaryPassword = $mail->temporaryPassword;
-            return $mail->hasTo($petugas->email);
-        });
-        $this->assertNotNull($temporaryPassword);
+        $temporaryPassword = $response->json('data.temporary_password');
+        $this->assertNotEmpty($temporaryPassword);
+        $response->assertJsonPath('data.email', $petugas->email);
+
+        // TIDAK ADA email delivery untuk reset password.
+        Mail::assertNothingSent();
 
         $this->postJson('/api/auth/login', [
             'identifier' => 'petugas@dpk.go.id',
