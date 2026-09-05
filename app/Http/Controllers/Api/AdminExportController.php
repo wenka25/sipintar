@@ -17,7 +17,19 @@ class AdminExportController extends Controller
         $rows = $reports->build($request, $request->user())->get();
         abort_if($rows->isEmpty(), 422, 'Tidak ada laporan sesuai filter.');
         return response()->streamDownload(function () use ($rows, $request) {
-            $cell = fn($value) => htmlspecialchars((string) ($value ?? '-'), ENT_QUOTES, 'UTF-8');
+            // Spreadsheet formula-injection mitigation: a leading `=`, `+`,
+            // `-` or `@` would be interpreted as a formula by Excel when the
+            // exported .xls is opened. Prefixing with a single quote neutralizes
+            // the value while preserving the intended text for the viewer.
+            $cell = function ($value) {
+                $value = (string) ($value ?? '-');
+
+                if ($value !== '' && str_contains('=+-@', $value[0])) {
+                    $value = "'" . $value;
+                }
+
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+            };
             echo '<table border="1"><tr><th colspan="12">Laporan DPK Mobile</th></tr>';
             echo '<tr><td colspan="12">Periode: ' . $cell(($request->input('tanggal_mulai') ?: 'Semua waktu') . ($request->filled('tanggal_akhir') ? ' s/d ' . $request->input('tanggal_akhir') : '')) . '</td></tr>';
             echo '<tr><td colspan="12">Status: ' . $cell($request->input('status') ?: 'Semua Status') . ' | Kategori ID: ' . $cell($request->input('kategori_id') ?: 'Semua Kategori') . '</td></tr>';

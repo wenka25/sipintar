@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\AndroidConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
@@ -70,7 +71,17 @@ class FirebaseService
         $message = CloudMessage::new()
             ->withToken($token)
             ->withNotification($notification)
-            ->withData($data);
+            ->withData($data)
+            // Pin background/terminated Android notifications to the same
+            // channel the foreground path uses ("dpk_status"), so sound and
+            // importance are consistent across app states.
+            ->withAndroidConfig(
+                AndroidConfig::fromArray([
+                    'notification' => [
+                        'channel_id' => 'dpk_status',
+                    ],
+                ])
+            );
 
         return $this->messaging->send($message);
     }
