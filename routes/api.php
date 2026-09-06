@@ -115,6 +115,11 @@ Route::prefix('admin')
             'show',
         ]);
 
+        Route::delete('/laporan/{id}', [
+            AdminLaporanController::class,
+            'destroy',
+        ])->middleware('role:admin');
+
         Route::put('/laporan/{id}/status', [
             AdminLaporanController::class,
             'updateStatus',

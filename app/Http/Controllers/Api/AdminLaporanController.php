@@ -190,6 +190,45 @@ public function updateStatus(
     ], 200);
 }
 
+    public function destroy(int $id): JsonResponse
+    {
+        $attachmentPaths = DB::transaction(function () use ($id): array {
+            $laporan = Laporan::with('lampiran')->find($id);
+
+            if (!$laporan) {
+                abort(404, 'Laporan tidak ditemukan.');
+            }
+
+            // url_file menyimpan URL disk public (mis. /storage/laporan/...).
+            // Normalisasi kembali ke path disk sebelum menghapus file fisik.
+            $attachmentPaths = $laporan->lampiran
+                ->pluck('url_file')
+                ->map(function (string $storedUrl): string {
+                    $path = parse_url($storedUrl, PHP_URL_PATH) ?: $storedUrl;
+                    return ltrim(preg_replace('#^/storage/#', '', $path), '/');
+                })
+                ->filter()
+                ->values()
+                ->all();
+
+            // Foreign key existing menghapus lampiran, status log, balasan,
+            // dan pivot laporan_device_tokens secara cascade. Device token
+            // global tidak disentuh.
+            $laporan->delete();
+
+            return $attachmentPaths;
+        });
+
+        foreach ($attachmentPaths as $path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Laporan berhasil dihapus.',
+        ], 200);
+    }
+
     public function storeBalasan(
         Request $request,
         int $id,
