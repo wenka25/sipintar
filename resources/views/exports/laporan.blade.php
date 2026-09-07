@@ -239,8 +239,9 @@
                 <th style="width:15%">Kode Tiket</th>
                 <th style="width:9%">Tanggal</th>
                 <th style="width:12%">Unit</th>
+                <th style="width:10%">Tipe</th>
                 <th style="width:10%">Kategori</th>
-                <th style="width:28%">Judul</th>
+                <th style="width:23%">Judul</th>
                 <th style="width:10%">Status</th>
                 <th style="width:12%">Pelapor</th>
             </tr>
@@ -252,6 +253,11 @@
                     <td>{{ $row->kode_tiket }}</td>
                     <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
                     <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
+                    <td>{{ [
+                        'pengaduan' => 'Pengaduan',
+                        'aspirasi' => 'Aspirasi',
+                        'permintaan_informasi' => 'Permintaan Informasi',
+                    ][$row->tipe] ?? $row->tipe }}</td>
                     <td>{{ $row->kategori?->nama ?? '-' }}</td>
                     <td>{{ $row->judul }}</td>
                     <td>

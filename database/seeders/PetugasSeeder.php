@@ -12,19 +12,19 @@ class PetugasSeeder extends Seeder
     public function run(): void
     {
         $assignments = [
-            // Email untuk Petugas Perpustakaan Umum
+            // Petugas Perpustakaan
             'petugas.perpus@gmail.com' => [
                 'name' => 'Petugas Perpustakaan',
                 'kode' => 'PERPUS_UM',
             ],
-            // Email untuk Petugas Kearsipan Umum
+            // Petugas Kearsipan
             'petugas.arsip@gmail.com' => [
                 'name' => 'Petugas Kearsipan',
                 'kode' => 'ARSIP_UM',
             ],
-            // Email untuk Petugas Layanan Perpustakaan
+            // Petugas Umum
             'petugas.layanan@gmail.com' => [
-                'name' => 'Petugas Layanan',
+                'name' => 'Petugas Umum',
                 'kode' => 'LAYAN_PERPUS',
             ],
         ];

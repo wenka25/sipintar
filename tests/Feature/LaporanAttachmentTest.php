@@ -10,6 +10,7 @@ use App\Models\Lampiran;
 use App\Models\UnitLayanan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -37,6 +38,21 @@ class LaporanAttachmentTest extends TestCase
         Storage::fake('public');
         $this->postJson('/api/laporan', $this->payload())->assertCreated();
         $this->assertDatabaseCount('lampiran', 0);
+    }
+
+    public function test_all_new_report_types_are_accepted_and_old_type_is_rejected(): void
+    {
+        $payload = $this->payload();
+        foreach (['pengaduan', 'aspirasi', 'permintaan_informasi'] as $type) {
+            $response = $this->postJson('/api/laporan', array_merge($payload, [
+                'tipe' => $type,
+            ]));
+            $response->assertCreated()->assertJsonPath('success', true);
+        }
+
+        $this->postJson('/api/laporan', array_merge($payload, [
+            'tipe' => 'pertanyaan',
+        ]))->assertUnprocessable();
     }
 
     public function test_report_with_three_images_stores_attachments_and_detail_returns_them(): void

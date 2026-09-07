@@ -67,7 +67,7 @@ class MultiUnitLayananTest extends TestCase
     {
         UnitLayanan::create([
             'kode' => 'PERPUS_UM',
-            'nama' => 'Perpustakaan Umum',
+            'nama' => 'Perpustakaan',
             'is_active' => true,
         ]);
         UnitLayanan::create([
@@ -84,12 +84,26 @@ class MultiUnitLayananTest extends TestCase
             ->assertJsonPath('data.0.kode', 'PERPUS_UM');
     }
 
+    public function test_unit_names_and_codes_are_preserved_as_expected(): void
+    {
+        $perpustakaan = UnitLayanan::create(['kode' => 'PERPUS_UM', 'nama' => 'Perpustakaan', 'is_active' => true]);
+        $kearsipan = UnitLayanan::create(['kode' => 'ARSIP_UM', 'nama' => 'Kearsipan', 'is_active' => true]);
+        $um = UnitLayanan::create(['kode' => 'LAYAN_PERPUS', 'nama' => 'Umum', 'is_active' => true]);
+
+        $this->getJson('/api/unit-layanan')
+            ->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonFragment(['id' => $perpustakaan->id, 'kode' => 'PERPUS_UM', 'nama' => 'Perpustakaan'])
+            ->assertJsonFragment(['id' => $kearsipan->id, 'kode' => 'ARSIP_UM', 'nama' => 'Kearsipan'])
+            ->assertJsonFragment(['id' => $um->id, 'kode' => 'LAYAN_PERPUS', 'nama' => 'Umum']);
+    }
+
     public function test_create_laporan_with_valid_active_unit_succeeds(): void
     {
         $kategori = Kategori::create(['nama' => 'Fasilitas']);
         $unit = UnitLayanan::create([
             'kode' => 'PERPUS_UM',
-            'nama' => 'Perpustakaan Umum',
+            'nama' => 'Perpustakaan',
             'is_active' => true,
         ]);
 
@@ -145,7 +159,7 @@ class MultiUnitLayananTest extends TestCase
         [$petugas, $petugasToken] = $this->createPetugas();
         $unit = UnitLayanan::create([
             'kode' => 'PERPUS_UM',
-            'nama' => 'Perpustakaan Umum',
+            'nama' => 'Perpustakaan',
             'is_active' => true,
         ]);
 
@@ -180,7 +194,7 @@ class MultiUnitLayananTest extends TestCase
         [$warga, $wargaToken] = $this->createWarga();
         $unit = UnitLayanan::create([
             'kode' => 'PERPUS_UM',
-            'nama' => 'Perpustakaan Umum',
+            'nama' => 'Perpustakaan',
             'is_active' => true,
         ]);
 

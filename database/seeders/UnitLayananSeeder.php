@@ -11,9 +11,9 @@ class UnitLayananSeeder extends Seeder
     {
         foreach (
             [
-                ['kode' => 'PERPUS_UM', 'nama' => 'Perpustakaan Umum'],
-                ['kode' => 'ARSIP_UM', 'nama' => 'Kearsipan Umum'],
-                ['kode' => 'LAYAN_PERPUS', 'nama' => 'Layanan Perpustakaan'],
+                ['kode' => 'PERPUS_UM', 'nama' => 'Perpustakaan'],
+                ['kode' => 'ARSIP_UM', 'nama' => 'Kearsipan'],
+                ['kode' => 'LAYAN_PERPUS', 'nama' => 'Umum'],
             ] as $unit
         ) {
             UnitLayanan::updateOrCreate(['kode' => $unit['kode']], $unit + ['is_active' => true]);

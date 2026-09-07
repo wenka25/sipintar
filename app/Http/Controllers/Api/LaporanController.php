@@ -48,7 +48,8 @@ class LaporanController extends Controller
                 'required',
                 Rule::in([
                     'pengaduan',
-                    'pertanyaan',
+                    'aspirasi',
+                    'permintaan_informasi',
                 ]),
             ],
 

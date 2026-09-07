@@ -38,7 +38,12 @@ class AdminExportController extends Controller
             foreach ($rows as $i => $row) {
                 $reporter = $row->is_anonim ? 'Anonymous' : ($row->pelapor_nama ?? '-');
                 $contact = $row->is_anonim ? null : $row->pelapor_kontak;
-                echo '<tr><td>' . ($i + 1) . '</td><td>' . $cell($row->kode_tiket) . '</td><td>' . $cell(optional($row->created_at)->format('Y-m-d H:i')) . '</td><td>' . $cell($row->unitLayanan?->nama) . '</td><td>' . $cell($row->tipe) . '</td><td>' . $cell($row->kategori?->nama) . '</td><td>' . $cell($row->judul) . '</td><td>' . $cell($row->deskripsi) . '</td><td>' . $cell($row->status) . '</td><td>' . $cell($reporter) . '</td><td>' . $cell($contact) . '</td><td>' . $cell($row->sumber) . '</td></tr>';
+                $typeLabels = [
+                    'pengaduan' => 'Pengaduan',
+                    'aspirasi' => 'Aspirasi',
+                    'permintaan_informasi' => 'Permintaan Informasi',
+                ];
+                echo '<tr><td>' . ($i + 1) . '</td><td>' . $cell($row->kode_tiket) . '</td><td>' . $cell(optional($row->created_at)->format('Y-m-d H:i')) . '</td><td>' . $cell($row->unitLayanan?->nama) . '</td><td>' . $cell($typeLabels[$row->tipe] ?? $row->tipe) . '</td><td>' . $cell($row->kategori?->nama) . '</td><td>' . $cell($row->judul) . '</td><td>' . $cell($row->deskripsi) . '</td><td>' . $cell($row->status) . '</td><td>' . $cell($reporter) . '</td><td>' . $cell($contact) . '</td><td>' . $cell($row->sumber) . '</td></tr>';
             }
             echo '</tbody></table>';
         }, 'laporan-dpk-' . now()->format('Y-m-d') . '.xls', ['Content-Type' => 'application/vnd.ms-excel; charset=UTF-8']);
