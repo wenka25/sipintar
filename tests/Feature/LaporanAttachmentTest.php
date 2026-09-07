@@ -87,16 +87,34 @@ class LaporanAttachmentTest extends TestCase
         ]);
     }
 
-    public function test_invalid_and_more_than_three_images_are_rejected(): void
+    public function test_pdf_and_image_combination_is_stored_with_correct_types(): void
+    {
+        Storage::fake('public');
+        $response = $this->post('/api/laporan', array_merge($this->payload(), [
+            'lampiran' => [
+                UploadedFile::fake()->image('foto.jpg'),
+                UploadedFile::fake()->create('surat.pdf', 10, 'application/pdf'),
+            ],
+        ]), ['Accept' => 'application/json']);
+
+        $response->assertCreated()->assertJsonCount(2, 'data.lampiran');
+        $this->assertDatabaseHas('lampiran', ['nama_file' => 'surat.pdf', 'tipe' => 'dokumen']);
+        $this->assertDatabaseHas('lampiran', ['nama_file' => 'foto.jpg', 'tipe' => 'foto']);
+    }
+
+    public function test_invalid_and_more_than_three_attachments_are_rejected(): void
     {
         Storage::fake('public');
         $payload = $this->payload();
-        $this->post('/api/laporan', array_merge($payload, ['lampiran' => [UploadedFile::fake()->create('bad.pdf', 10, 'application/pdf')]]), ['Accept' => 'application/json'])->assertUnprocessable();
-        $this->post('/api/laporan', array_merge($payload, ['lampiran' => [UploadedFile::fake()->image('1.jpg'), UploadedFile::fake()->image('2.jpg'), UploadedFile::fake()->image('3.jpg'), UploadedFile::fake()->image('4.jpg')]]), ['Accept' => 'application/json'])->assertUnprocessable();
+        $this->post('/api/laporan', array_merge($payload, ['lampiran' => [UploadedFile::fake()->create('bad.exe', 10, 'application/octet-stream')]]), ['Accept' => 'application/json'])->assertUnprocessable();
+        $this->post('/api/laporan', array_merge($payload, ['lampiran' => [UploadedFile::fake()->image('1.jpg'), UploadedFile::fake()->image('2.jpg'), UploadedFile::fake()->image('3.jpg'), UploadedFile::fake()->create('4.pdf', 10, 'application/pdf')]]), ['Accept' => 'application/json'])->assertUnprocessable();
     }
 
-    public function test_five_mb_limit_is_enforced(): void
+    public function test_five_mb_limit_is_enforced_for_images_and_pdfs(): void
     {
-        $this->post('/api/laporan', array_merge($this->payload(), ['lampiran' => [UploadedFile::fake()->create('large.jpg', 5121, 'image/jpeg')]]), ['Accept' => 'application/json'])->assertUnprocessable();
+        $payload = $this->payload();
+        foreach ([['large.jpg', 'image/jpeg'], ['large.pdf', 'application/pdf']] as [$name, $mime]) {
+            $this->post('/api/laporan', array_merge($payload, ['lampiran' => [UploadedFile::fake()->create($name, 5121, $mime)]]), ['Accept' => 'application/json'])->assertUnprocessable();
+        }
     }
 }

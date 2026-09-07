@@ -10,29 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-/**
- * Manajemen pengguna untuk Admin (TASK A: reset password via Admin).
- *
- * Alur baru "Lupa Password":
- * user meminta bantuan Admin -> Admin memilih user -> Admin menjalankan
- * reset -> server menghasilkan password sementara (disimpan hanya sebagai
- * hash) -> user login dengan password sementara -> user WAJIB mengganti
- * password (must_change_password = true).
- *
- * Keamanan:
- * - Route dilindungi unified.auth + role:admin (lihat routes/api.php).
- * - Password sementara di-generate server-side (Str::password, cryptographically
- *   secure), tidak pernah disimpan plaintext, tidak pernah di-log.
- * - Password sementara hanya dikembalikan SEKALI di response ini.
- * - Admin tidak dapat me-reset akunnya sendiri.
- * - Tidak ada bypass authentication; menggunakan middleware yang sudah ada.
- */
 class AdminUserController extends Controller
 {
-    /**
-     * Daftar pengguna (staff: admin/petugas, dan warga) untuk Manajemen Pengguna.
-     * Mendukung pencarian sederhana by nama/email dan filter account_type.
-     */
     public function index(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -84,10 +63,6 @@ class AdminUserController extends Controller
         ]);
     }
 
-    /**
-     * Reset password sebuah akun oleh Admin. Menghasilkan password sementara,
-     * menyimpannya sebagai hash, dan menandai akun wajib ganti password.
-     */
     public function resetPassword(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
@@ -115,9 +90,6 @@ class AdminUserController extends Controller
             ], 422);
         }
 
-        // Password sementara: kuat, di-generate server-side (random bytes).
-        // TIDAK disimpan plaintext, TIDAK di-log. Hash menggunakan bcrypt
-        // (Hash::make) yang sudah dipakai project.
         $temporaryPassword = Str::password(12, symbols: false);
 
         $account->forceFill([
@@ -125,8 +97,7 @@ class AdminUserController extends Controller
             'must_change_password' => true,
         ])->save();
 
-        // Password sementara dikembalikan SATU KALI kepada Admin untuk
-        // dibagikan secara manual (Copy/Share). TIDAK dikirim via email.
+        // Password sementara hanya dikembalikan pada respons ini.
         return response()->json([
             'success' => true,
             'message' => 'Password berhasil direset. Berikan password sementara kepada pengguna secara manual.',

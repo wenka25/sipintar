@@ -26,11 +26,10 @@ class TestNotificationController extends Controller
                 'success' => true,
                 'message' => 'Notifikasi berhasil dikirim.',
             ]);
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengirim notifikasi.',
-                'error' => $e->getMessage(),
             ], 500);
         }
     }

@@ -14,7 +14,6 @@ use App\Http\Controllers\Api\AdminExportController;
 use App\Http\Controllers\Api\KategoriController;
 use App\Http\Controllers\Api\PasswordResetRequestController;
 
-// Public routes
 Route::get('/ping', fn () => response()->json([
     'success' => true,
     'message' => 'Laravel API berhasil',
@@ -37,8 +36,6 @@ Route::get('/laporan/perangkat', [
     'anonymousIndex',
 ]);
 
-// TASK B: Pengajuan permintaan reset password oleh user (tanpa login).
-// Terpisah total dari laporan; tidak menyentuh tabel/statistik laporan.
 Route::post('/password-reset-requests', [
     PasswordResetRequestController::class,
     'store',
@@ -59,7 +56,6 @@ Route::get('/warga/laporan', [
     'index',
 ])->middleware(['unified.auth', 'role:warga']);
 
-// Authentication routes
 Route::prefix('auth')->group(function () {
 
     Route::post('/login', [
@@ -71,11 +67,6 @@ Route::prefix('auth')->group(function () {
         AuthController::class,
         'register',
     ]);
-
-    // TASK A: "Lupa Password" tidak lagi menggunakan OTP/email.
-    // User menghubungi Admin; Admin mereset password via endpoint
-    // /admin/users/{id}/reset-password. User wajib mengganti password
-    // setelah login dengan password sementara (must_change_password).
 
     Route::middleware('unified.auth')->group(function () {
 
@@ -89,7 +80,6 @@ Route::prefix('auth')->group(function () {
             'logout',
         ]);
 
-        // Ganti password oleh user yang login (wajib setelah reset oleh Admin).
         Route::post('/change-password', [
             AuthController::class,
             'changePassword',
@@ -97,7 +87,6 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-//admin routes
 Route::prefix('admin')
     ->middleware(['unified.auth', 'role:admin,petugas'])
     ->group(function () {
@@ -136,18 +125,17 @@ Route::prefix('admin')
             Route::delete('/{unitId}', [UnitLayananController::class, 'unassign']);
         });
 
-        // TASK A: Manajemen Pengguna (khusus admin, bukan petugas).
         Route::middleware('role:admin')->prefix('users')->group(function () {
             Route::get('/', [AdminUserController::class, 'index']);
             Route::post('/{id}/reset-password', [AdminUserController::class, 'resetPassword']);
         });
 
-        // TASK B: Admin memproses permintaan reset password (admin saja).
         Route::middleware('role:admin')->prefix('password-reset-requests')->group(function () {
             Route::get('/', [PasswordResetRequestController::class, 'index']);
             Route::post('/{id}/verify', [PasswordResetRequestController::class, 'verify']);
             Route::post('/{id}/reject', [PasswordResetRequestController::class, 'reject']);
             Route::post('/{id}/reset', [PasswordResetRequestController::class, 'reset']);
+            Route::delete('/{id}', [PasswordResetRequestController::class, 'destroy']);
         });
     });
 

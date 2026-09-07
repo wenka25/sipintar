@@ -169,6 +169,26 @@ class PasswordResetRequestController extends Controller
      * REUSE pola yang sama dengan AdminUserController::resetPassword
      * (password sementara hash-only + must_change_password = true).
      */
+    public function destroy(int $id): JsonResponse
+    {
+        $resetRequest = $this->findOrFail($id);
+
+        if ($resetRequest->status !== PasswordResetRequest::STATUS_COMPLETED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya riwayat reset password yang sudah selesai yang dapat dihapus.',
+            ], 422);
+        }
+
+        // Hanya menghapus log permintaan reset; akun terkait tidak disentuh.
+        $resetRequest->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Riwayat reset password berhasil dihapus.',
+        ]);
+    }
+
     public function reset(Request $request, int $id): JsonResponse
     {
         $resetRequest = $this->findOrFail($id);

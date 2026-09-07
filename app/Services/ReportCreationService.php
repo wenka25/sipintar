@@ -93,7 +93,11 @@ class ReportCreationService
         foreach ($request->file('lampiran', []) as $file) {
             $path = $file->store('laporan/' . now()->format('Y/m'), 'public');
             $storedFiles[] = $path;
-            $laporan->lampiran()->create(['url_file' => Storage::disk('public')->url($path), 'tipe' => 'foto', 'nama_file' => $file->getClientOriginalName()]);
+            $laporan->lampiran()->create([
+                'url_file' => Storage::disk('public')->url($path),
+                'tipe' => $file->getMimeType() === 'application/pdf' ? 'dokumen' : 'foto',
+                'nama_file' => $file->getClientOriginalName(),
+            ]);
         }
     }
 }

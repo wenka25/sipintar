@@ -213,6 +213,90 @@ class PasswordResetRequestTest extends TestCase
         ])->assertStatus(422);
     }
 
+    public function test_admin_can_delete_completed_request_without_deleting_user(): void
+    {
+        $warga = $this->createWarga();
+        $token = $this->loginAsAdmin();
+        $request = PasswordResetRequest::create([
+            'identifier_type' => 'email',
+            'identifier' => $warga->email,
+            'requested_account_id' => $warga->id,
+            'requested_account_type' => 'warga',
+            'status' => PasswordResetRequest::STATUS_COMPLETED,
+            'completed_at' => now(),
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson("/api/admin/password-reset-requests/{$request->id}")
+            ->assertOk()
+            ->assertJsonPath('message', 'Riwayat reset password berhasil dihapus.');
+
+        $this->assertDatabaseMissing('password_reset_requests', ['id' => $request->id]);
+        $this->assertDatabaseHas('akun_warga', ['id' => $warga->id, 'email' => 'budi@example.com']);
+    }
+
+    public function test_only_admin_can_delete_completed_request(): void
+    {
+        $request = PasswordResetRequest::create([
+            'identifier_type' => 'email',
+            'identifier' => 'unknown@example.com',
+            'status' => PasswordResetRequest::STATUS_COMPLETED,
+            'completed_at' => now(),
+        ]);
+        $url = "/api/admin/password-reset-requests/{$request->id}";
+
+        $this->deleteJson($url)->assertUnauthorized();
+        $this->withHeader('Authorization', 'Bearer ' . $this->loginAsPetugasForDelete())
+            ->deleteJson($url)->assertForbidden();
+        $this->withHeader('Authorization', 'Bearer ' . $this->loginAsWargaForDelete())
+            ->deleteJson($url)->assertForbidden();
+        $this->assertDatabaseHas('password_reset_requests', ['id' => $request->id]);
+    }
+
+    public function test_admin_gets_not_found_for_missing_request(): void
+    {
+        $this->withHeader('Authorization', 'Bearer ' . $this->loginAsAdmin())
+            ->deleteJson('/api/admin/password-reset-requests/99999')
+            ->assertNotFound();
+    }
+
+    public function test_pending_request_cannot_be_deleted(): void
+    {
+        $token = $this->loginAsAdmin();
+        $request = PasswordResetRequest::create([
+            'identifier_type' => 'email',
+            'identifier' => 'pending@example.com',
+            'status' => PasswordResetRequest::STATUS_PENDING,
+        ]);
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson("/api/admin/password-reset-requests/{$request->id}")
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Hanya riwayat reset password yang sudah selesai yang dapat dihapus.');
+        $this->assertDatabaseHas('password_reset_requests', ['id' => $request->id]);
+    }
+
+    private function loginAsPetugasForDelete(): string
+    {
+        $user = User::firstOrCreate(
+            ['email' => 'petugas-delete@dpk.go.id'],
+            ['name' => 'Petugas', 'password' => Hash::make('password-petugas-delete'), 'role' => 'petugas'],
+        );
+        return $this->postJson('/api/auth/login', [
+            'identifier' => $user->email,
+            'password' => 'password-petugas-delete',
+        ])->assertOk()->json('data.token');
+    }
+
+    private function loginAsWargaForDelete(): string
+    {
+        $warga = $this->createWarga();
+        return $this->postJson('/api/auth/login', [
+            'identifier' => $warga->email,
+            'password' => 'password-warga-123',
+        ])->assertOk()->json('data.token');
+    }
+
     public function test_rejected_request_cannot_be_reset(): void
     {
         $this->createWarga();

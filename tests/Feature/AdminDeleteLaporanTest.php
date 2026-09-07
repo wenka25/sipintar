@@ -79,7 +79,7 @@ class AdminDeleteLaporanTest extends TestCase
         $path = 'laporan/2026/08/bukti.jpg';
         Storage::disk('public')->put($path, 'file');
         $laporan->lampiran()->create([
-            'url_file' => Storage::disk('public')->url($path),
+            'url_file' => Storage::url($path),
             'tipe' => 'foto',
             'nama_file' => 'bukti.jpg',
         ]);
@@ -102,7 +102,7 @@ class AdminDeleteLaporanTest extends TestCase
         $this->assertDatabaseCount('laporan_device_tokens', 0);
         $this->assertDatabaseHas('device_tokens', ['id' => $deviceToken->id]);
         $this->assertDatabaseHas('laporan', ['id' => $otherReport->id]);
-        Storage::disk('public')->assertMissing($path);
+        $this->assertFalse(Storage::disk('public')->exists($path));
     }
 
     public function test_only_admin_can_delete_and_missing_report_returns_not_found(): void
