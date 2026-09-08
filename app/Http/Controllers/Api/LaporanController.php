@@ -170,6 +170,8 @@ class LaporanController extends Controller
             hash('sha256', $validated['device_token'])
         )->where('is_active', true)->first();
 
+        $perPage = min(max($request->integer('per_page', 10), 1), 100);
+
         $laporan = Laporan::with(['kategori', 'unitLayanan', 'lampiran'])
             ->when($deviceToken, fn ($query) => $query->where(function ($query) use ($deviceToken) {
                 $query->whereHas('deviceTokens', fn ($deviceTokens) =>
@@ -191,7 +193,7 @@ class LaporanController extends Controller
                 $query->whereRaw('1 = 0')
             )
             ->latest()
-            ->paginate($request->integer('per_page', 10));
+            ->paginate($perPage);
 
         $laporan->getCollection()->transform(
             fn (Laporan $item) => $item->makeHidden(['pelapor_nama', 'pelapor_kontak', 'is_anonim'])

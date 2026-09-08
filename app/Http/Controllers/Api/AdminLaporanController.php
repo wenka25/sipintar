@@ -34,9 +34,8 @@ class AdminLaporanController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $laporan = $query->paginate(
-            $request->integer('per_page', 10)
-        );
+        $perPage = min(max($request->integer('per_page', 10), 1), 100);
+        $laporan = $query->paginate($perPage);
 
         return response()->json([
             'success' => true,

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Middleware\RequireRole;
 use App\Http\Middleware\UnifiedJwtAuthentication;
 use App\Http\Middleware\OptionalUnifiedJwtAuthentication;
+use App\Http\Middleware\EnsurePasswordChanged;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'unified.auth' => UnifiedJwtAuthentication::class,
             'optional.unified.auth' => OptionalUnifiedJwtAuthentication::class,
+            'password.changed' => EnsurePasswordChanged::class,
             'role' => RequireRole::class,
         ]);
     })

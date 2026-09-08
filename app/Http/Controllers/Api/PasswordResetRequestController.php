@@ -98,7 +98,8 @@ class PasswordResetRequestController extends Controller
             $query->where('status', $validated['status']);
         }
 
-        $requests = $query->paginate($request->integer('per_page', 20));
+        $perPage = min(max($request->integer('per_page', 20), 1), 100);
+        $requests = $query->paginate($perPage);
 
         return response()->json([
             'success' => true,

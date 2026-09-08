@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\LaporanController;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminUserController;
@@ -19,27 +18,22 @@ Route::get('/ping', fn () => response()->json([
     'message' => 'Laravel API berhasil',
 ]));
 
-Route::get('/db-check', fn () => response()->json([
-    'database' => DB::connection()->getDatabaseName(),
-    'unit_layanan_count' => DB::table('unit_layanan')->count(),
-]));
-
 Route::get('/unit-layanan', [UnitLayananController::class, 'index']);
 Route::get('/kategori', [KategoriController::class, 'index']);
 Route::post('/laporan', [
     LaporanController::class,
     'store',
-])->middleware('optional.unified.auth');
+])->middleware(['throttle:10,1', 'optional.unified.auth', 'password.changed']);
 
 Route::get('/laporan/perangkat', [
     LaporanController::class,
     'anonymousIndex',
-]);
+])->middleware('password.changed');
 
 Route::post('/password-reset-requests', [
     PasswordResetRequestController::class,
     'store',
-]);
+])->middleware('throttle:3,1');
 
 Route::get('/laporan/{kodeTiket}', [
     LaporanController::class,
@@ -49,24 +43,24 @@ Route::get('/laporan/{kodeTiket}', [
 Route::post('/device-tokens', [
     DeviceTokenController::class,
     'store',
-])->middleware('optional.unified.auth');
+])->middleware(['throttle:10,1', 'optional.unified.auth', 'password.changed']);
 
 Route::get('/warga/laporan', [
     WargaLaporanController::class,
     'index',
-])->middleware(['unified.auth', 'role:warga']);
+])->middleware(['unified.auth', 'password.changed', 'role:warga']);
 
 Route::prefix('auth')->group(function () {
 
     Route::post('/login', [
         AuthController::class,
         'login',
-    ]);
+    ])->middleware('throttle:5,1');
 
     Route::post('/register', [
         AuthController::class,
         'register',
-    ]);
+    ])->middleware('throttle:5,1');
 
     Route::middleware('unified.auth')->group(function () {
 
@@ -88,7 +82,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::prefix('admin')
-    ->middleware(['unified.auth', 'role:admin,petugas'])
+    ->middleware(['unified.auth', 'password.changed', 'role:admin,petugas'])
     ->group(function () {
 
         Route::get('/laporan', [

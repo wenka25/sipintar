@@ -15,11 +15,12 @@ class WargaLaporanController extends Controller
         /** @var AkunWarga $warga */
         $warga = $request->user();
         $pelaporIds = $warga->pelapor()->pluck('id');
+        $perPage = min(max($request->integer('per_page', 10), 1), 100);
 
         $laporan = Laporan::with(['kategori', 'unitLayanan'])
             ->whereIn('pelapor_id', $pelaporIds)
             ->latest()
-            ->paginate($request->integer('per_page', 10));
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
