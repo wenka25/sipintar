@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <title>Laporan Aspirasi dan Pengaduan</title>
@@ -66,45 +67,64 @@
             margin: 4px 0;
         }
 
+        /* ===== PERBAIKAN UTAMA: Ringkasan dengan Flexbox ===== */
         .summary {
             margin: 16px 0;
-            padding: 12px;
+            padding: 10px 14px;
             background: var(--bg-even);
             border: 1px solid var(--border);
             border-radius: 4px;
         }
 
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: transparent;
+        .summary-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 20px;
+            /* jarak antar item */
         }
 
-        .summary-table td {
-            padding: 6px 10px;
-            border: none;
-            vertical-align: middle;
-            font-weight: bold;
+        .summary-item {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
         }
 
-        .summary-table td:first-child {
-            text-align: left;
+        .summary-label {
+            font-weight: normal;
             color: var(--text-muted);
+            font-size: 9px;
         }
 
-        .summary-table td:last-child {
-            text-align: right;
-            font-size: 12px;
+        .summary-value {
+            font-weight: bold;
             color: var(--primary);
+            font-size: 10px;
+        }
+
+        .summary-divider {
+            color: #ccc;
+            font-weight: 300;
+            margin: 0 2px;
         }
 
         .summary .print-date {
             text-align: right;
             font-size: 8px;
             color: var(--text-muted);
-            margin-top: 4px;
+            margin-top: 6px;
+            border-top: 1px dashed #ddd;
+            padding-top: 4px;
         }
 
+        /* ===== Filter info ===== */
+        .filter-info {
+            margin: 12px 0;
+            color: var(--text-muted);
+            font-size: 8.5px;
+        }
+
+        /* ===== Tabel utama ===== */
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -117,11 +137,6 @@
 
         .report-table tr {
             page-break-inside: avoid;
-        }
-
-        .filter-info {
-            margin: 12px 0;
-            color: var(--text-muted);
         }
 
         .report-table th {
@@ -150,6 +165,7 @@
             text-align: center;
         }
 
+        /* ===== Status badge ===== */
         .status-badge {
             display: inline-block;
             padding: 3px 8px;
@@ -197,6 +213,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Kop Laporan -->
     <div class="header">
@@ -205,32 +222,56 @@
         <div class="title">LAPORAN ASPIRASI DAN PENGADUAN</div>
     </div>
 
-    <!-- Ringkasan -->
+    <!-- ===== RINGKASAN (diperbaiki dengan Flexbox) ===== -->
     <div class="summary">
-        <table class="summary-table">
-            <tr>
-                <td>Total Laporan</td>
-                <td>{{ $rows->count() }}</td>
-                <td>Baru</td>
-                <td>{{ $summary['baru'] ?? 0 }}</td>
-                <td>Diproses</td>
-                <td>{{ $summary['diproses'] ?? 0 }}</td>
-                <td>Selesai</td>
-                <td>{{ $summary['selesai'] ?? 0 }}</td>
-                <td>Ditolak</td>
-                <td>{{ $summary['ditolak'] ?? 0 }}</td>
-            </tr>
-        </table>
+        <div class="summary-row">
+            <!-- Total Laporan -->
+            <div class="summary-item">
+                <span class="summary-label">Total Laporan</span>
+                <span class="summary-value">{{ $rows->count() }}</span>
+            </div>
+            <span class="summary-divider">|</span>
+
+            <!-- Baru -->
+            <div class="summary-item">
+                <span class="summary-label">Baru</span>
+                <span class="summary-value">{{ $summary['baru'] ?? 0 }}</span>
+            </div>
+            <span class="summary-divider">|</span>
+
+            <!-- Diproses -->
+            <div class="summary-item">
+                <span class="summary-label">Diproses</span>
+                <span class="summary-value">{{ $summary['diproses'] ?? 0 }}</span>
+            </div>
+            <span class="summary-divider">|</span>
+
+            <!-- Selesai -->
+            <div class="summary-item">
+                <span class="summary-label">Selesai</span>
+                <span class="summary-value">{{ $summary['selesai'] ?? 0 }}</span>
+            </div>
+            <span class="summary-divider">|</span>
+
+            <!-- Ditolak -->
+            <div class="summary-item">
+                <span class="summary-label">Ditolak</span>
+                <span class="summary-value">{{ $summary['ditolak'] ?? 0 }}</span>
+            </div>
+        </div>
+
         <div class="print-date">Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
     </div>
 
+    <!-- Filter Info -->
     <div class="filter-info">
         <strong>Unit Layanan:</strong>
         {{ $request->filled('unit_layanan_id') ? ($rows->first()?->unitLayanan?->nama ?? $request->input('unit_layanan_id')) : 'Semua Unit' }}
         &nbsp; | &nbsp;
         <strong>Status:</strong> {{ $request->input('status') ?: 'Semua Status' }}
         &nbsp; | &nbsp;
-        <strong>Kategori:</strong> {{ $rows->first()?->kategori?->nama ?? ($request->filled('kategori_id') ? $request->input('kategori_id') : 'Semua Kategori') }}
+        <strong>Kategori:</strong>
+        {{ $rows->first()?->kategori?->nama ?? ($request->filled('kategori_id') ? $request->input('kategori_id') : 'Semua Kategori') }}
         @if($request->filled('tanggal_mulai') || $request->filled('tanggal_akhir'))
             &nbsp; | &nbsp; <strong>Periode:</strong>
             {{ $request->input('tanggal_mulai') ?: 'awal' }} s/d {{ $request->input('tanggal_akhir') ?: 'akhir' }}
@@ -254,43 +295,43 @@
         </thead>
         <tbody>
             @forelse($rows as $i => $row)
-                <tr>
-                    <td class="text-center">{{ $i + 1 }}</td>
-                    <td>{{ $row->kode_tiket }}</td>
-                    <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
-                    <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
-                    <td>{{ [
-        'pengaduan' => 'Pengaduan',
-        'aspirasi' => 'Aspirasi',
-        'permintaan_informasi' => 'Permintaan Informasi',
-    ][$row->tipe] ?? $row->tipe }}</td>
-                    <td>{{ $row->kategori?->nama ?? '-' }}</td>
-                    <td>{{ $row->judul }}</td>
-                    <td>
-                        @php
-    $statusClass = match ($row->status) {
-        'baru' => 'baru',
-        'diproses' => 'diproses',
-        'selesai' => 'selesai',
-        'ditolak' => 'ditolak',
-        default => 'default',
-    };
-                        @endphp
-                        <span class="status-badge {{ $statusClass }}">
-                            {{ $row->status }}
-                        </span>
-                    </td>
-                    <td>
-                        @if($row->is_anonim)
-                            Anonymous
-                        @else
-                            {{ $row->pelapor_nama ?? '-' }}
-                        @endif
-                    </td>
-                </tr>
+                        <tr>
+                            <td class="text-center">{{ $i + 1 }}</td>
+                            <td>{{ $row->kode_tiket }}</td>
+                            <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
+                            <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
+                            <td>{{ [
+                    'pengaduan' => 'Pengaduan',
+                    'aspirasi' => 'Aspirasi',
+                    'permintaan_informasi' => 'Permintaan Informasi',
+                ][$row->tipe] ?? $row->tipe }}</td>
+                            <td>{{ $row->kategori?->nama ?? '-' }}</td>
+                            <td>{{ $row->judul }}</td>
+                            <td>
+                                @php
+                                    $statusClass = match ($row->status) {
+                                        'baru' => 'baru',
+                                        'diproses' => 'diproses',
+                                        'selesai' => 'selesai',
+                                        'ditolak' => 'ditolak',
+                                        default => 'default',
+                                    };
+                                @endphp
+                                <span class="status-badge {{ $statusClass }}">
+                                    {{ $row->status }}
+                                </span>
+                            </td>
+                            <td>
+                                @if($row->is_anonim)
+                                    Anonymous
+                                @else
+                                    {{ $row->pelapor_nama ?? '-' }}
+                                @endif
+                            </td>
+                        </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="text-center">Tidak ada data laporan.</td>
+                    <td colspan="9" class="text-center">Tidak ada data laporan.</td>
                 </tr>
             @endforelse
         </tbody>
@@ -300,4 +341,5 @@
         Dokumen ini dicetak secara otomatis dari sistem DPK Mobile.
     </div>
 </body>
+
 </html>
