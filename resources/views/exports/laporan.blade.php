@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="id">
-
 <head>
     <meta charset="utf-8">
     <title>Laporan Aspirasi dan Pengaduan</title>
@@ -80,8 +79,7 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 6px 20px;
-            /* jarak antar item */
+            gap: 6px 20px;   /* jarak antar item */
         }
 
         .summary-item {
@@ -208,12 +206,11 @@
         }
 
         @page {
-            size: A4 portrait;
+            size: A4 landscape;
             margin: 12mm;
         }
     </style>
 </head>
-
 <body>
     <!-- Kop Laporan -->
     <div class="header">
@@ -270,8 +267,7 @@
         &nbsp; | &nbsp;
         <strong>Status:</strong> {{ $request->input('status') ?: 'Semua Status' }}
         &nbsp; | &nbsp;
-        <strong>Kategori:</strong>
-        {{ $rows->first()?->kategori?->nama ?? ($request->filled('kategori_id') ? $request->input('kategori_id') : 'Semua Kategori') }}
+        <strong>Kategori:</strong> {{ $rows->first()?->kategori?->nama ?? ($request->filled('kategori_id') ? $request->input('kategori_id') : 'Semua Kategori') }}
         @if($request->filled('tanggal_mulai') || $request->filled('tanggal_akhir'))
             &nbsp; | &nbsp; <strong>Periode:</strong>
             {{ $request->input('tanggal_mulai') ?: 'awal' }} s/d {{ $request->input('tanggal_akhir') ?: 'akhir' }}
@@ -295,40 +291,40 @@
         </thead>
         <tbody>
             @forelse($rows as $i => $row)
-                        <tr>
-                            <td class="text-center">{{ $i + 1 }}</td>
-                            <td>{{ $row->kode_tiket }}</td>
-                            <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
-                            <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
-                            <td>{{ [
-                    'pengaduan' => 'Pengaduan',
-                    'aspirasi' => 'Aspirasi',
-                    'permintaan_informasi' => 'Permintaan Informasi',
-                ][$row->tipe] ?? $row->tipe }}</td>
-                            <td>{{ $row->kategori?->nama ?? '-' }}</td>
-                            <td>{{ $row->judul }}</td>
-                            <td>
-                                @php
-                                    $statusClass = match ($row->status) {
-                                        'baru' => 'baru',
-                                        'diproses' => 'diproses',
-                                        'selesai' => 'selesai',
-                                        'ditolak' => 'ditolak',
-                                        default => 'default',
-                                    };
-                                @endphp
-                                <span class="status-badge {{ $statusClass }}">
-                                    {{ $row->status }}
-                                </span>
-                            </td>
-                            <td>
-                                @if($row->is_anonim)
-                                    Anonymous
-                                @else
-                                    {{ $row->pelapor_nama ?? '-' }}
-                                @endif
-                            </td>
-                        </tr>
+                <tr>
+                    <td class="text-center">{{ $i + 1 }}</td>
+                    <td>{{ $row->kode_tiket }}</td>
+                    <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
+                    <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
+                    <td>{{ [
+                        'pengaduan' => 'Pengaduan',
+                        'aspirasi' => 'Aspirasi',
+                        'permintaan_informasi' => 'Permintaan Informasi',
+                    ][$row->tipe] ?? $row->tipe }}</td>
+                    <td>{{ $row->kategori?->nama ?? '-' }}</td>
+                    <td>{{ $row->judul }}</td>
+                    <td>
+                        @php
+                            $statusClass = match ($row->status) {
+                                'baru' => 'baru',
+                                'diproses' => 'diproses',
+                                'selesai' => 'selesai',
+                                'ditolak' => 'ditolak',
+                                default => 'default',
+                            };
+                        @endphp
+                        <span class="status-badge {{ $statusClass }}">
+                            {{ $row->status }}
+                        </span>
+                    </td>
+                    <td>
+                        @if($row->is_anonim)
+                            Anonymous
+                        @else
+                            {{ $row->pelapor_nama ?? '-' }}
+                        @endif
+                    </td>
+                </tr>
             @empty
                 <tr>
                     <td colspan="9" class="text-center">Tidak ada data laporan.</td>
@@ -341,5 +337,4 @@
         Dokumen ini dicetak secara otomatis dari sistem DPK Mobile.
     </div>
 </body>
-
 </html>
