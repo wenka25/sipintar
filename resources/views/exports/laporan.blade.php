@@ -31,7 +31,8 @@
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 9px;
             color: var(--text-dark);
-            padding: 24px;
+            padding: 0;
+            margin: 0;
             background: #fff;
         }
 
@@ -189,6 +190,11 @@
             font-size: 8px;
             color: var(--text-muted);
         }
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm;
+        }
     </style>
 </head>
 <body>
@@ -254,21 +260,21 @@
                     <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
                     <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
                     <td>{{ [
-                        'pengaduan' => 'Pengaduan',
-                        'aspirasi' => 'Aspirasi',
-                        'permintaan_informasi' => 'Permintaan Informasi',
-                    ][$row->tipe] ?? $row->tipe }}</td>
+        'pengaduan' => 'Pengaduan',
+        'aspirasi' => 'Aspirasi',
+        'permintaan_informasi' => 'Permintaan Informasi',
+    ][$row->tipe] ?? $row->tipe }}</td>
                     <td>{{ $row->kategori?->nama ?? '-' }}</td>
                     <td>{{ $row->judul }}</td>
                     <td>
                         @php
-                            $statusClass = match ($row->status) {
-                                'baru' => 'baru',
-                                'diproses' => 'diproses',
-                                'selesai' => 'selesai',
-                                'ditolak' => 'ditolak',
-                                default => 'default',
-                            };
+    $statusClass = match ($row->status) {
+        'baru' => 'baru',
+        'diproses' => 'diproses',
+        'selesai' => 'selesai',
+        'ditolak' => 'ditolak',
+        default => 'default',
+    };
                         @endphp
                         <span class="status-badge {{ $statusClass }}">
                             {{ $row->status }}

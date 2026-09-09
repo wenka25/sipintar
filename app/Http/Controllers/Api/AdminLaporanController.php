@@ -25,6 +25,7 @@ class AdminLaporanController extends Controller
             'kategori_id' => ['nullable', 'integer', 'exists:kategori,id'],
             'tanggal_mulai' => ['nullable', 'date'],
             'tanggal_akhir' => ['nullable', 'date', 'after_or_equal:tanggal_mulai'],
+            'kode_tiket' => ['nullable', 'string', 'max:64'],
         ]);
         $query = $reports->build($request, $request->user());
 

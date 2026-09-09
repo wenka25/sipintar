@@ -359,4 +359,71 @@ class MultiUnitLayananTest extends TestCase
             ])
             ->assertCreated();
     }
+
+    public function test_admin_ticket_search_trims_is_case_insensitive_and_keeps_pagination(): void
+    {
+        $kategori = Kategori::create(['nama' => 'Umum']);
+        $unit = UnitLayanan::create(['kode' => 'UNIT_SEARCH', 'nama' => 'Unit Search', 'is_active' => true]);
+        [, $adminToken] = $this->createAdmin();
+        $pelapor = Pelapor::create(['nama' => 'Pelapor Search', 'is_anonim' => false]);
+
+        foreach (['DPK-20260908-AB12CD', 'DPK-20260908-AB12EF', 'DPK-20260909-ZZ9999'] as $index => $kode) {
+            Laporan::create([
+                'kode_tiket' => $kode,
+                'pelapor_id' => $pelapor->id,
+                'unit_layanan_id' => $unit->id,
+                'tipe' => 'pengaduan',
+                'kategori_id' => $kategori->id,
+                'judul' => "Laporan Search {$index}",
+                'deskripsi' => 'Deskripsi Search',
+                'status' => 'baru',
+                'sumber' => 'app',
+            ]);
+        }
+
+        $this->withHeader('Authorization', "Bearer $adminToken")
+            ->getJson('/api/admin/laporan?kode_tiket=%20dpk-20260908-ab12%20&per_page=1')
+            ->assertOk()
+            ->assertJsonPath('data.total', 2)
+            ->assertJsonPath('data.per_page', 1)
+            ->assertJsonCount(1, 'data.data')
+            ->assertJsonFragment(['kode_tiket' => 'DPK-20260908-AB12EF']);
+
+        $this->withHeader('Authorization', "Bearer $adminToken")
+            ->getJson('/api/admin/laporan?kode_tiket=DPK-NOT-FOUND')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.data');
+
+        $this->withHeader('Authorization', "Bearer $adminToken")
+            ->getJson('/api/admin/laporan?kode_tiket=%20%20')
+            ->assertOk()
+            ->assertJsonPath('data.total', 3);
+    }
+
+    public function test_petugas_ticket_search_cannot_escape_unit_isolation(): void
+    {
+        $kategori = Kategori::create(['nama' => 'Umum']);
+        $unitA = UnitLayanan::create(['kode' => 'UNIT_SEARCH_A', 'nama' => 'Unit A', 'is_active' => true]);
+        $unitB = UnitLayanan::create(['kode' => 'UNIT_SEARCH_B', 'nama' => 'Unit B', 'is_active' => true]);
+        [, $petugasToken] = $this->createPetugas('search-petugas@test.com');
+        $petugas = User::where('email', 'search-petugas@test.com')->firstOrFail();
+        $petugas->unitLayanan()->attach($unitA->id);
+        $pelapor = Pelapor::create(['nama' => 'Pelapor Isolation', 'is_anonim' => false]);
+
+        Laporan::create([
+            'kode_tiket' => 'DPK-SEARCH-A', 'pelapor_id' => $pelapor->id, 'unit_layanan_id' => $unitA->id,
+            'tipe' => 'pengaduan', 'kategori_id' => $kategori->id, 'judul' => 'A', 'deskripsi' => 'A',
+            'status' => 'baru', 'sumber' => 'app',
+        ]);
+        Laporan::create([
+            'kode_tiket' => 'DPK-SEARCH-B', 'pelapor_id' => $pelapor->id, 'unit_layanan_id' => $unitB->id,
+            'tipe' => 'pengaduan', 'kategori_id' => $kategori->id, 'judul' => 'B', 'deskripsi' => 'B',
+            'status' => 'baru', 'sumber' => 'app',
+        ]);
+
+        $this->withHeader('Authorization', "Bearer $petugasToken")
+            ->getJson('/api/admin/laporan?kode_tiket=DPK-SEARCH-B')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.data');
+    }
 }

@@ -35,7 +35,12 @@ class AdminLaporanQueryService
         foreach (['status', 'tipe', 'kategori_id', 'sumber'] as $field) {
             if ($request->filled($field)) $query->where($field, $request->input($field));
         }
-        if ($request->filled('kode_tiket')) $query->where('kode_tiket', 'like', '%' . $request->input('kode_tiket') . '%');
+        if ($request->filled('kode_tiket')) {
+            $kodeTiket = strtoupper(trim($request->string('kode_tiket')->toString()));
+            if ($kodeTiket !== '') {
+                $query->where('kode_tiket', 'like', "{$kodeTiket}%");
+            }
+        }
         if ($request->filled('tanggal_mulai')) $query->whereDate('created_at', '>=', $request->input('tanggal_mulai'));
         if ($request->filled('tanggal_akhir')) $query->whereDate('created_at', '<=', $request->input('tanggal_akhir'));
         return $query;
