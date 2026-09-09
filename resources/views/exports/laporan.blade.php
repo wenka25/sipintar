@@ -39,13 +39,13 @@
 
         .header {
             text-align: center;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
             border-bottom: 2px solid var(--primary);
-            padding-bottom: 8px;
+            padding-bottom: 7px;
         }
 
         .header .institution {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: bold;
             color: var(--primary);
             text-transform: uppercase;
@@ -53,14 +53,14 @@
         }
 
         .header .sub-institution {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 7px;
+            margin-bottom: 6px;
         }
 
         .header .title {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -74,8 +74,8 @@
            sungguhan, sama seperti .report-table yang sudah terbukti
            render rapi di PDF. */
         .summary {
-            margin: 16px 0 18px;
-            padding: 12px 14px;
+            margin: 13px 0 15px;
+            padding: 13px 14px;
             background: var(--bg-even);
             border: 1px solid var(--border);
             border-radius: 4px;
@@ -89,7 +89,7 @@
 
         .summary-table td {
             border: none;
-            padding: 3px 6px;
+            padding: 4px 6px;
             vertical-align: baseline;
             white-space: nowrap;
         }
@@ -101,13 +101,13 @@
         .summary-label {
             font-weight: normal;
             color: var(--text-muted);
-            font-size: 9px;
+            font-size: 8.5px;
         }
 
         .summary-value {
             font-weight: bold;
             color: var(--primary);
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .summary-divider {
@@ -128,10 +128,10 @@
 
         /* ===== Filter info ===== */
         .filter-info {
-            margin: 12px 0;
+            margin: 10px 0;
             color: var(--text-muted);
-            font-size: 8px;
-            line-height: 1.4;
+            font-size: 9px;
+            line-height: 1.5;
             overflow-wrap: break-word;
             page-break-inside: avoid;
         }
@@ -141,7 +141,7 @@
             width: 100%;
             table-layout: fixed;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 7px;
             page-break-inside: auto;
         }
 
@@ -158,25 +158,27 @@
             color: #1a237e;
             font-weight: bold;
             text-align: left;
-            padding: 6px 4px;
+            padding: 6px;
             border: 1px solid var(--border);
             text-transform: uppercase;
-            font-size: 8.5px;
+            font-size: 9px;
             letter-spacing: 0.2px;
             word-wrap: break-word;
         }
 
         .report-table td {
-            padding: 5px 4px;
+            padding: 6px;
             border: 1px solid var(--border);
             vertical-align: top;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            font-size: 9px;
         }
 
         .report-table td:nth-child(2) {
             white-space: nowrap;
-            font-size: 8px;
+            overflow: hidden;
+            font-size: 9px;
         }
 
         .report-table tbody tr:nth-child(even) {
@@ -190,9 +192,9 @@
         /* ===== Status badge ===== */
         .status-badge {
             display: inline-block;
-            padding: 2px 4px;
+            padding: 3px 5px;
             border-radius: 8px;
-            font-size: 7px;
+            font-size: 8px;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -223,8 +225,8 @@
         }
 
         .footer {
-            margin-top: 10px;
-            padding-top: 5px;
+            margin-top: 12px;
+            padding-top: 6px;
             border-top: 1px solid #ddd;
             text-align: right;
             font-size: 7.5px;
