@@ -136,53 +136,82 @@
             page-break-inside: avoid;
         }
 
-        /* ===== Tabel utama ===== */
-        .report-table {
+        /* ===== Daftar laporan: satu blok vertikal per laporan ===== */
+        .reports {
+            margin-top: 8px;
+        }
+
+        .report-card {
             width: 100%;
-            table-layout: fixed;
-            border-collapse: collapse;
-            margin-top: 7px;
-            page-break-inside: auto;
-        }
-
-        .report-table thead {
-            display: table-header-group;
-        }
-
-        .report-table tr {
+            margin: 0 0 10px;
+            border: 1px solid var(--border);
             page-break-inside: avoid;
         }
 
-        .report-table th {
+        .report-card table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        .report-card td {
+            padding: 6px 7px;
+            border: 1px solid #b8becb;
+            vertical-align: top;
+            font-size: 9px;
+            line-height: 1.35;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .report-card .key-row td {
             background: var(--bg-header);
             color: #1a237e;
             font-weight: bold;
-            text-align: left;
-            padding: 6px;
-            border: 1px solid var(--border);
-            text-transform: uppercase;
-            font-size: 9px;
-            letter-spacing: 0.2px;
-            word-wrap: break-word;
         }
 
-        .report-table td {
-            padding: 6px;
-            border: 1px solid var(--border);
-            vertical-align: top;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            font-size: 9px;
+        .report-card .number-cell {
+            width: 8%;
+            text-align: center;
         }
 
-        .report-table td:nth-child(2) {
+        .report-card .ticket-cell {
+            width: 42%;
             white-space: nowrap;
-            overflow: hidden;
-            font-size: 9px;
+            font-size: 9.5px;
         }
 
-        .report-table tbody tr:nth-child(even) {
-            background: var(--bg-even);
+        .report-card .date-cell {
+            width: 22%;
+            white-space: nowrap;
+        }
+
+        .report-card .status-cell {
+            width: 28%;
+            text-align: center;
+        }
+
+        .report-card .label-cell {
+            width: 16%;
+            background: #f1f3f8;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .report-card .value-cell {
+            width: 34%;
+        }
+
+        .report-card .title-label {
+            width: 16%;
+            background: #f1f3f8;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .report-card .title-value {
+            width: 84%;
+            white-space: normal;
         }
 
         .text-center {
@@ -298,64 +327,64 @@
         @endif
     </div>
 
-    <!-- Tabel Laporan -->
-    <table class="report-table">
-        <thead>
-            <tr>
-                <th style="width:4%">No</th>
-                <th style="width:17%">Kode Tiket</th>
-                <th style="width:9%">Tanggal</th>
-                <th style="width:13%">Unit</th>
-                <th style="width:9%">Tipe</th>
-                <th style="width:9%">Kategori</th>
-                <th style="width:22%">Judul</th>
-                <th style="width:8%">Status</th>
-                <th style="width:9%">Pelapor</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($rows as $i => $row)
-                        <tr>
-                            <td class="text-center">{{ $i + 1 }}</td>
-                            <td>{{ $row->kode_tiket }}</td>
-                            <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
-                            <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
-                            <td>{{ [
+    <!-- Daftar Laporan: setiap laporan adalah satu blok yang tidak dipotong -->
+    <div class="reports">
+        @forelse($rows as $i => $row)
+            @php
+                $statusClass = match ($row->status) {
+                    'baru' => 'baru',
+                    'diproses' => 'diproses',
+                    'selesai' => 'selesai',
+                    'ditolak' => 'ditolak',
+                    default => 'default',
+                };
+                $typeLabel = [
                     'pengaduan' => 'Pengaduan',
                     'aspirasi' => 'Aspirasi',
                     'permintaan_informasi' => 'Permintaan Informasi',
-                ][$row->tipe] ?? $row->tipe }}</td>
-                            <td>{{ $row->kategori?->nama ?? '-' }}</td>
-                            <td>{{ $row->judul }}</td>
-                            <td>
-                                @php
-                                    $statusClass = match ($row->status) {
-                                        'baru' => 'baru',
-                                        'diproses' => 'diproses',
-                                        'selesai' => 'selesai',
-                                        'ditolak' => 'ditolak',
-                                        default => 'default',
-                                    };
-                                @endphp
-                                <span class="status-badge {{ $statusClass }}">
-                                    {{ $row->status }}
-                                </span>
-                            </td>
-                            <td>
-                                @if($row->is_anonim)
-                                    Anonymous
-                                @else
-                                    {{ $row->pelapor_nama ?? '-' }}
-                                @endif
-                            </td>
-                        </tr>
-            @empty
+                ][$row->tipe] ?? $row->tipe;
+            @endphp
+            <div class="report-card">
+                <table>
+                    <tr class="key-row">
+                        <td class="number-cell">No<br><span>{{ $i + 1 }}</span></td>
+                        <td class="ticket-cell">Kode Tiket<br><span>{{ $row->kode_tiket }}</span></td>
+                        <td class="date-cell">Tanggal<br><span>{{ optional($row->created_at)->format('d-m-Y') }}</span></td>
+                        <td class="status-cell">Status<br><span
+                                class="status-badge {{ $statusClass }}">{{ $row->status }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Unit</td>
+                        <td class="value-cell">{{ $row->unitLayanan?->nama ?? '-' }}</td>
+                        <td class="label-cell">Tipe</td>
+                        <td class="value-cell">{{ $typeLabel }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Kategori</td>
+                        <td class="value-cell">{{ $row->kategori?->nama ?? '-' }}</td>
+                        <td class="label-cell">Pelapor</td>
+                        <td class="value-cell">
+                            @if($row->is_anonim)
+                                Anonymous
+                            @else
+                                {{ $row->pelapor_nama ?? '-' }}
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="title-label">Judul</td>
+                        <td colspan="3" class="title-value">{{ $row->judul }}</td>
+                    </tr>
+                </table>
+            </div>
+        @empty
+            <table class="report-card">
                 <tr>
-                    <td colspan="9" class="text-center">Tidak ada data laporan.</td>
+                    <td class="text-center">Tidak ada data laporan.</td>
                 </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </table>
+        @endforelse
+    </div>
 
     <div class="footer">
         Dokumen ini dicetak secara otomatis dari sistem DPK Mobile.
