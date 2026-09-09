@@ -213,7 +213,13 @@
             width: 84%;
             white-space: normal;
         }
-
+        
+        .report-table {
+            width: 100%;
+            margin: 8px 0 0;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
         .text-center {
             text-align: center;
         }
@@ -265,7 +271,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 12mm 8mm 12mm 8mm;
+            margin: 10mm 5mm 10mm 5mm;
         }
     </style>
 </head>
