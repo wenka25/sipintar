@@ -59,7 +59,7 @@ class AdminExportController extends Controller
         $html = view('exports.laporan', compact('rows', 'summary', 'request'))->render();
         $pdf = new Dompdf();
         $pdf->loadHtml($html);
-        $pdf->setPaper('a4', 'potrait');
+        $pdf->setPaper('a4', 'portrait');
         $pdf->render();
         return response()->streamDownload(fn() => print($pdf->output()), 'laporan-dpk-' . now()->format('Y-m-d') . '.pdf', ['Content-Type' => 'application/pdf']);
     }

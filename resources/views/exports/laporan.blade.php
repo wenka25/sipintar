@@ -38,9 +38,9 @@
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 3px solid var(--primary);
-            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
         }
 
         .header .institution {
@@ -52,40 +52,45 @@
         }
 
         .header .sub-institution {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 12px;
+            margin-bottom: 7px;
         }
 
         .header .title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 4px 0;
+            letter-spacing: 0.6px;
+            margin: 3px 0;
         }
 
-        /* ===== PERBAIKAN UTAMA: Ringkasan dengan Flexbox ===== */
+        /* ===== Ringkasan: table layout kompatibel dengan DomPDF ===== */
         .summary {
-            margin: 16px 0;
-            padding: 10px 14px;
+            margin: 10px 0;
+            padding: 7px 10px;
             background: var(--bg-even);
             border: 1px solid var(--border);
             border-radius: 4px;
+            page-break-inside: avoid;
         }
 
         .summary-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px 20px;   /* jarak antar item */
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .summary-item,
+        .summary-divider {
+            display: table-cell;
+            vertical-align: baseline;
+            white-space: nowrap;
         }
 
         .summary-item {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
+            text-align: center;
         }
 
         .summary-label {
@@ -101,9 +106,10 @@
         }
 
         .summary-divider {
+            width: 2%;
             color: #ccc;
             font-weight: 300;
-            margin: 0 2px;
+            text-align: center;
         }
 
         .summary .print-date {
@@ -117,16 +123,21 @@
 
         /* ===== Filter info ===== */
         .filter-info {
-            margin: 12px 0;
+            margin: 8px 0;
             color: var(--text-muted);
-            font-size: 8.5px;
+            font-size: 8px;
+            line-height: 1.4;
+            overflow-wrap: break-word;
+            page-break-inside: avoid;
         }
 
         /* ===== Tabel utama ===== */
         .report-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
-            margin-top: 12px;
+            margin-top: 8px;
+            page-break-inside: auto;
         }
 
         .report-table thead {
@@ -142,17 +153,25 @@
             color: #1a237e;
             font-weight: bold;
             text-align: left;
-            padding: 8px 6px;
+            padding: 6px 4px;
             border: 1px solid var(--border);
             text-transform: uppercase;
             font-size: 8.5px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.2px;
+            word-wrap: break-word;
         }
 
         .report-table td {
-            padding: 7px 6px;
+            padding: 5px 4px;
             border: 1px solid var(--border);
             vertical-align: top;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .report-table td:nth-child(2) {
+            white-space: nowrap;
+            font-size: 8px;
         }
 
         .report-table tbody tr:nth-child(even) {
@@ -166,9 +185,9 @@
         /* ===== Status badge ===== */
         .status-badge {
             display: inline-block;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 8px;
+            font-size: 7px;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -199,10 +218,13 @@
         }
 
         .footer {
-            margin-top: 20px;
+            margin-top: 10px;
+            padding-top: 5px;
+            border-top: 1px solid #ddd;
             text-align: right;
-            font-size: 8px;
+            font-size: 7.5px;
             color: var(--text-muted);
+            page-break-inside: avoid;
         }
 
         @page {
@@ -279,14 +301,14 @@
         <thead>
             <tr>
                 <th style="width:4%">No</th>
-                <th style="width:15%">Kode Tiket</th>
+                <th style="width:17%">Kode Tiket</th>
                 <th style="width:9%">Tanggal</th>
-                <th style="width:12%">Unit</th>
-                <th style="width:10%">Tipe</th>
-                <th style="width:10%">Kategori</th>
-                <th style="width:23%">Judul</th>
-                <th style="width:10%">Status</th>
-                <th style="width:12%">Pelapor</th>
+                <th style="width:13%">Unit</th>
+                <th style="width:9%">Tipe</th>
+                <th style="width:9%">Kategori</th>
+                <th style="width:22%">Judul</th>
+                <th style="width:8%">Status</th>
+                <th style="width:9%">Pelapor</th>
             </tr>
         </thead>
         <tbody>
