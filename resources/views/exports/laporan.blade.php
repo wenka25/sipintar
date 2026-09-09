@@ -39,7 +39,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 18px;
             border-bottom: 2px solid var(--primary);
             padding-bottom: 8px;
         }
@@ -74,8 +74,8 @@
            sungguhan, sama seperti .report-table yang sudah terbukti
            render rapi di PDF. */
         .summary {
-            margin: 10px 0;
-            padding: 7px 10px;
+            margin: 16px 0 18px;
+            padding: 12px 14px;
             background: var(--bg-even);
             border: 1px solid var(--border);
             border-radius: 4px;
@@ -89,7 +89,7 @@
 
         .summary-table td {
             border: none;
-            padding: 0;
+            padding: 3px 6px;
             vertical-align: baseline;
             white-space: nowrap;
         }
@@ -128,7 +128,7 @@
 
         /* ===== Filter info ===== */
         .filter-info {
-            margin: 8px 0;
+            margin: 12px 0;
             color: var(--text-muted);
             font-size: 8px;
             line-height: 1.4;
