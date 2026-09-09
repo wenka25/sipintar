@@ -265,7 +265,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 12mm;
+            margin: 12mm 8mm 12mm 8mm;
         }
     </style>
 </head>
@@ -331,18 +331,18 @@
     <div class="reports">
         @forelse($rows as $i => $row)
             @php
-                $statusClass = match ($row->status) {
-                    'baru' => 'baru',
-                    'diproses' => 'diproses',
-                    'selesai' => 'selesai',
-                    'ditolak' => 'ditolak',
-                    default => 'default',
-                };
-                $typeLabel = [
-                    'pengaduan' => 'Pengaduan',
-                    'aspirasi' => 'Aspirasi',
-                    'permintaan_informasi' => 'Permintaan Informasi',
-                ][$row->tipe] ?? $row->tipe;
+    $statusClass = match ($row->status) {
+        'baru' => 'baru',
+        'diproses' => 'diproses',
+        'selesai' => 'selesai',
+        'ditolak' => 'ditolak',
+        default => 'default',
+    };
+    $typeLabel = [
+        'pengaduan' => 'Pengaduan',
+        'aspirasi' => 'Aspirasi',
+        'permintaan_informasi' => 'Permintaan Informasi',
+    ][$row->tipe] ?? $row->tipe;
             @endphp
             <div class="report-card">
                 <table>
