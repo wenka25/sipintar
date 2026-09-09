@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <title>Laporan Aspirasi dan Pengaduan</title>
@@ -66,7 +67,12 @@
             margin: 3px 0;
         }
 
-        /* ===== Ringkasan: table layout kompatibel dengan DomPDF ===== */
+        /* ===== Ringkasan: TABEL HTML ASLI (bukan CSS display:table) =====
+           DomPDF tidak konsisten mendukung "display: table / table-cell"
+           di elemen div/span biasa — terutama <span> yang aslinya inline
+           (lihat .summary-divider di versi lama). Solusinya pakai <table>
+           sungguhan, sama seperti .report-table yang sudah terbukti
+           render rapi di PDF. */
         .summary {
             margin: 10px 0;
             padding: 7px 10px;
@@ -76,15 +82,14 @@
             page-break-inside: avoid;
         }
 
-        .summary-row {
-            display: table;
+        .summary-table {
             width: 100%;
-            table-layout: fixed;
+            border-collapse: collapse;
         }
 
-        .summary-item,
-        .summary-divider {
-            display: table-cell;
+        .summary-table td {
+            border: none;
+            padding: 0;
             vertical-align: baseline;
             white-space: nowrap;
         }
@@ -106,7 +111,7 @@
         }
 
         .summary-divider {
-            width: 2%;
+            width: 14px;
             color: #ccc;
             font-weight: 300;
             text-align: center;
@@ -233,6 +238,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Kop Laporan -->
     <div class="header">
@@ -241,43 +247,36 @@
         <div class="title">LAPORAN ASPIRASI DAN PENGADUAN</div>
     </div>
 
-    <!-- ===== RINGKASAN (diperbaiki dengan Flexbox) ===== -->
+    <!-- ===== RINGKASAN (pakai <table> asli agar konsisten di DomPDF) ===== -->
     <div class="summary">
-        <div class="summary-row">
-            <!-- Total Laporan -->
-            <div class="summary-item">
-                <span class="summary-label">Total Laporan</span>
-                <span class="summary-value">{{ $rows->count() }}</span>
-            </div>
-            <span class="summary-divider">|</span>
-
-            <!-- Baru -->
-            <div class="summary-item">
-                <span class="summary-label">Baru</span>
-                <span class="summary-value">{{ $summary['baru'] ?? 0 }}</span>
-            </div>
-            <span class="summary-divider">|</span>
-
-            <!-- Diproses -->
-            <div class="summary-item">
-                <span class="summary-label">Diproses</span>
-                <span class="summary-value">{{ $summary['diproses'] ?? 0 }}</span>
-            </div>
-            <span class="summary-divider">|</span>
-
-            <!-- Selesai -->
-            <div class="summary-item">
-                <span class="summary-label">Selesai</span>
-                <span class="summary-value">{{ $summary['selesai'] ?? 0 }}</span>
-            </div>
-            <span class="summary-divider">|</span>
-
-            <!-- Ditolak -->
-            <div class="summary-item">
-                <span class="summary-label">Ditolak</span>
-                <span class="summary-value">{{ $summary['ditolak'] ?? 0 }}</span>
-            </div>
-        </div>
+        <table class="summary-table" cellspacing="0" cellpadding="0">
+            <tr>
+                <td class="summary-item">
+                    <span class="summary-label">Total Laporan</span>
+                    <span class="summary-value">{{ $rows->count() }}</span>
+                </td>
+                <td class="summary-divider">|</td>
+                <td class="summary-item">
+                    <span class="summary-label">Baru</span>
+                    <span class="summary-value">{{ $summary['baru'] ?? 0 }}</span>
+                </td>
+                <td class="summary-divider">|</td>
+                <td class="summary-item">
+                    <span class="summary-label">Diproses</span>
+                    <span class="summary-value">{{ $summary['diproses'] ?? 0 }}</span>
+                </td>
+                <td class="summary-divider">|</td>
+                <td class="summary-item">
+                    <span class="summary-label">Selesai</span>
+                    <span class="summary-value">{{ $summary['selesai'] ?? 0 }}</span>
+                </td>
+                <td class="summary-divider">|</td>
+                <td class="summary-item">
+                    <span class="summary-label">Ditolak</span>
+                    <span class="summary-value">{{ $summary['ditolak'] ?? 0 }}</span>
+                </td>
+            </tr>
+        </table>
 
         <div class="print-date">Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
     </div>
@@ -289,7 +288,8 @@
         &nbsp; | &nbsp;
         <strong>Status:</strong> {{ $request->input('status') ?: 'Semua Status' }}
         &nbsp; | &nbsp;
-        <strong>Kategori:</strong> {{ $rows->first()?->kategori?->nama ?? ($request->filled('kategori_id') ? $request->input('kategori_id') : 'Semua Kategori') }}
+        <strong>Kategori:</strong>
+        {{ $rows->first()?->kategori?->nama ?? ($request->filled('kategori_id') ? $request->input('kategori_id') : 'Semua Kategori') }}
         @if($request->filled('tanggal_mulai') || $request->filled('tanggal_akhir'))
             &nbsp; | &nbsp; <strong>Periode:</strong>
             {{ $request->input('tanggal_mulai') ?: 'awal' }} s/d {{ $request->input('tanggal_akhir') ?: 'akhir' }}
@@ -313,40 +313,40 @@
         </thead>
         <tbody>
             @forelse($rows as $i => $row)
-                <tr>
-                    <td class="text-center">{{ $i + 1 }}</td>
-                    <td>{{ $row->kode_tiket }}</td>
-                    <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
-                    <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
-                    <td>{{ [
-                        'pengaduan' => 'Pengaduan',
-                        'aspirasi' => 'Aspirasi',
-                        'permintaan_informasi' => 'Permintaan Informasi',
-                    ][$row->tipe] ?? $row->tipe }}</td>
-                    <td>{{ $row->kategori?->nama ?? '-' }}</td>
-                    <td>{{ $row->judul }}</td>
-                    <td>
-                        @php
-                            $statusClass = match ($row->status) {
-                                'baru' => 'baru',
-                                'diproses' => 'diproses',
-                                'selesai' => 'selesai',
-                                'ditolak' => 'ditolak',
-                                default => 'default',
-                            };
-                        @endphp
-                        <span class="status-badge {{ $statusClass }}">
-                            {{ $row->status }}
-                        </span>
-                    </td>
-                    <td>
-                        @if($row->is_anonim)
-                            Anonymous
-                        @else
-                            {{ $row->pelapor_nama ?? '-' }}
-                        @endif
-                    </td>
-                </tr>
+                        <tr>
+                            <td class="text-center">{{ $i + 1 }}</td>
+                            <td>{{ $row->kode_tiket }}</td>
+                            <td>{{ optional($row->created_at)->format('d-m-Y') }}</td>
+                            <td>{{ $row->unitLayanan?->nama ?? '-' }}</td>
+                            <td>{{ [
+                    'pengaduan' => 'Pengaduan',
+                    'aspirasi' => 'Aspirasi',
+                    'permintaan_informasi' => 'Permintaan Informasi',
+                ][$row->tipe] ?? $row->tipe }}</td>
+                            <td>{{ $row->kategori?->nama ?? '-' }}</td>
+                            <td>{{ $row->judul }}</td>
+                            <td>
+                                @php
+                                    $statusClass = match ($row->status) {
+                                        'baru' => 'baru',
+                                        'diproses' => 'diproses',
+                                        'selesai' => 'selesai',
+                                        'ditolak' => 'ditolak',
+                                        default => 'default',
+                                    };
+                                @endphp
+                                <span class="status-badge {{ $statusClass }}">
+                                    {{ $row->status }}
+                                </span>
+                            </td>
+                            <td>
+                                @if($row->is_anonim)
+                                    Anonymous
+                                @else
+                                    {{ $row->pelapor_nama ?? '-' }}
+                                @endif
+                            </td>
+                        </tr>
             @empty
                 <tr>
                     <td colspan="9" class="text-center">Tidak ada data laporan.</td>
@@ -359,4 +359,5 @@
         Dokumen ini dicetak secara otomatis dari sistem DPK Mobile.
     </div>
 </body>
+
 </html>
