@@ -22,10 +22,16 @@
             --color-badge-ditolak: #c62828;
         }
 
-        * {
-            box-sizing: border-box;
+        /* Reset di-scope ke elemen konkret (BUKAN universal '*'):
+           universal reset menimpa margin kotak @page Dompdf sehingga
+           margin halaman menjadi 0 dan konten menempel ke tepi kertas. */
+        body, div, table, tr, td, th, span, p {
             margin: 0;
             padding: 0;
+        }
+
+        table, td, th {
+            box-sizing: border-box;
         }
 
         body {
@@ -143,8 +149,11 @@
 
         .report-card {
             width: 100%;
-            margin: 0 0 10px;
+            margin: 0 0 6px;
             border: 1px solid var(--border);
+        }
+
+        .report-card tr {
             page-break-inside: avoid;
         }
 
@@ -155,7 +164,7 @@
         }
 
         .report-card td {
-            padding: 6px 7px;
+            padding: 4px 6px;
             border: 1px solid #b8becb;
             vertical-align: top;
             font-size: 9px;
@@ -271,7 +280,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 10mm 5mm 10mm 5mm;
+            margin: 12mm 15mm;
         }
     </style>
 </head>
